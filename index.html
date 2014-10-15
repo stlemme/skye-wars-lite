@@ -1,0 +1,153 @@
+<html>
+  <head>
+    <title>Skye Wars lite</title>
+
+	<link rel="stylesheet" type="text/css" media="all" href="styles.css"/>
+    <link rel="stylesheet" type="text/css" media="all" href="gh-fork-ribbon.css"/>
+
+    <script type="text/javascript" src="script/xml3d-dev.js"></script>
+    <script type="text/javascript" src="script/xml3d-background.js"></script>
+    <script type="text/javascript" src="script/xml3d-webcam.js"></script>
+	<script type="text/javascript" src="script/xml3d-animation.js"></script>
+    <script type="text/javascript" src="script/sylvester.src.js"></script>
+    <script type="text/javascript" src="script/xflar-fft.js"></script>
+    <script type="text/javascript" src="script/shader-deform.js"></script>
+    <script type="text/javascript" src="script/tween.js"></script>
+    <script type="text/javascript" src="script/spaceships.js"></script>
+  </head>
+  <body>
+    <div id="overall">
+	  <div id="container">
+      <div id="content">
+        <xml3d id="myxml3d" activeView="#View" class="xml3d">
+
+		  <lightshader id="light1" script="urn:xml3d:lightshader:directional">
+			<float3 name="intensity">0.6 0.6 0.6</float3>
+		  </lightshader>
+		  <group style="transform: rotateX(-60deg) rotateY(45deg);" >
+			<light shader="#light1"></light>
+		  </group>
+		
+          <!-- AR processing block -->
+          <data id="arBase" compute="transform, visibility, perspective = xflar.fft(arvideo, detect)">
+            <texture name="arvideo">
+              <video autoplay="true" id="inputvideo" src="resources/fft-video-06.mp4"></video>
+            </texture>
+			<float3 name="detect">1 1 1</float3>
+          </data>
+
+
+          <!-- Viewpoint with connection to AR data -->
+          <view id="View" perspective="#arBase"></view>
+
+
+          <shader id="background-fx" script="urn:xml3d:shader:background-video">
+            <data filter="rename({videoTex: arvideo})" src="#arBase"></data>
+          </shader>
+
+          <!-- Group with screen aligned quad to render video -->
+          <group shader="#background-fx" >
+            <mesh type="triangles" src="resources/basic.xml#mesh_quad"></mesh>
+          </group>
+
+          <!-- Group to be attached to the marker image - AR content -->
+          <group transform="#arBase">
+
+            <!-- spaceships -->
+			<group id="ships">
+			</group>
+
+			
+            <shader id="texShader" script="urn:xml3d:shader:deform">
+			  <texture name="iChannel0" wrapS="repeat" wrapT="repeat">
+                  <img src="resources/tex01.jpg"/>
+              </texture>
+              <float name="iGlobalTime" id="shaderTime">0.0</float>
+            </shader>
+
+            <!-- wormhole -->
+			<group style="shader: url(#texShader); transform: scale(4.0);">
+              <mesh type="triangles">
+                <data src="resources/basic.xml#mesh_ground"></data>
+              </mesh>
+            </group>
+			
+          </group>
+
+        </xml3d>
+		<div id="gui"><img src="resources/GUI_web.png"/></div>
+	    <div id="logo"><img src="img/xml3dlogo.png"/></div>
+		<div id="splashscreen"><span></span><img src="img/fic2logo-vertical-darkbg.png"/></div>
+		<div class="github-fork-ribbon-wrapper left">
+          <div class="github-fork-ribbon">
+            <a href="https://github.com/stlemme/skye-wars-lite" target="_blank">Fork me on GitHub</a>
+          </div>
+		</div>
+      </div>
+	  <div id="sidebar">
+	  </div>
+	</div>
+    <div class="footer">
+      Presented by DFKI GmbH, Disney Research Zurich and The Walt Disney Company
+    </div>
+    </div>
+	<script type="text/javascript">
+
+		var animator;
+		
+		var camPos = [0.0, 0.0, 16.0];
+		
+		function observerCallBack(records, observer) {
+			if (records.length < 1)
+				return;
+			
+			var result = records[0].result;
+			var tf = result.getValue("transform");
+			
+			camPos[0] = -tf[12];
+			camPos[1] = -tf[13];
+			camPos[2] = -tf[14];
+		}
+		
+		var tripTarget = function () {
+			var angle = Math.random() * 2.0 * Math.PI;
+			return {
+				x: camPos[0] + Math.cos(angle),
+				y: camPos[1] + Math.sin(angle),
+				z: camPos[2] + 1.0
+			};
+		};
+		
+		function onload() {
+			animator = new XML3D.animation.Animator();
+			
+			var elem = document.getElementById("shaderTime");
+			var gtElem = new XML3D.animation.GlobalTimeElement(elem);
+			animator.registerAnimation(gtElem);
+						
+			var observer = new XML3DDataObserver( observerCallBack );
+			var arNode = document.getElementById("arBase");
+			observer.observe(arNode, "transform");
+			
+			elem = document.getElementById("splashscreen");
+			elem.style.opacity = 1.0;
+			var tween = new TWEEN.Tween( elem.style )
+				.to({opacity: 0.0}, 800)
+				.delay(1000)
+				.onComplete(function () { animator.removeAnimation(fadeElem); })
+				.start(1000*animator.global);
+			var fadeElem = new XML3D.animation.TweenElement(elem, tween);
+			animator.registerAnimation(fadeElem);
+			
+			
+			XML3D.spawnSpaceship(tripTarget, 6.0, 1.0);
+			XML3D.spawnSpaceship(tripTarget, 4.0, 2.0);
+			XML3D.spawnSpaceship(tripTarget, 5.5, 2.5);
+			XML3D.spawnSpaceship(tripTarget, 4.0, 3.5);
+			XML3D.spawnSpaceship(tripTarget, 5.0, 4.0);
+		}
+	
+		window.addEventListener('load', onload, false);
+	</script>
+  </body>
+</html>

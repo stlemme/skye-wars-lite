@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xml3d xmlns="http://www.xml3d.org/2009/xml3d" >
+
+	<shader id="spaceshipShader" script="urn:xml3d:shader:phong">
+		<texture name="diffuseTexture"><img src="spaceship_D_256s.png"/></texture>
+		<float3 name="diffuseColor">1 1 1</float3>
+		<float name="ambientIntensity">0.3</float>
+		<float3 name="specularColor">0.500000 0.500000 0.500000</float3>
+		<float name="shininess">0.09784735812133072</float>
+		<float name="transparency">0.0</float>
+	</shader>
+
+    <asset id="asset" >
+        <!-- meshes -->
+        <assetmesh name="main" shader="#spaceshipShader">
+            <data src="spaceship-mesh.xml#mesh" />
+        </assetmesh>
+    </asset>
+
+</xml3d>
