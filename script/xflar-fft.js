@@ -29,7 +29,7 @@ function rgbToHsl(r, g, b) {
 function Detect(src, idx, hue, threshold)
 {
 	var r = src[4*idx], g = src[4*idx+1], b = src[4*idx+2];
-	var d = 4;
+	var d = 8;
 	// return (r > 252 && g > 252 && b > 252);
 	return (r < d && g < d && b < d);
 
